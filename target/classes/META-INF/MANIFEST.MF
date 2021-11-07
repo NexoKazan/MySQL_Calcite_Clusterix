@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Main-Class: Main
+Class-Path: json-path-2.4.0.jar checker-qual-3.10.0.jar jsr305-3.0.2.jar
+  listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar commons
+ -lang3-3.8.jar jackson-annotations-2.10.0.jar snakeyaml-1.24.jar jackso
+ n-core-2.10.0.jar slf4j-api-1.7.25.jar opencsv-4.0.jar memory-0.9.0.jar
+  commons-logging-1.1.3.jar cloning-1.9.10.jar asm-5.0.4.jar guava-29.0-
+ jre.jar jackson-dataformat-yaml-2.10.0.jar commons-beanutils-1.9.3.jar 
+ error_prone_annotations-2.5.1.jar log4j-1.2.17.jar commons-collections-
+ 3.2.2.jar protobuf-java-3.6.1.jar calcite-linq4j-1.27.0.jar commons-dbc
+ p2-2.6.0.jar jline-3.0.0.M1.jar esri-geometry-api-2.2.0.jar httpclient-
+ 4.5.9.jar commons-lang-2.4.jar commons-pool2-2.6.1.jar verdictdb-core-0
+ .5.8.jar sketches-core-0.9.0.jar logback-core-1.2.3.jar jline-3.7.0.jar
+  aggdesigner-algorithm-6.0.jar commons-codec-1.13.jar avatica-metrics-1
+ .18.0.jar accessors-smart-1.2.jar mysql-connector-java-8.0.26.jar commo
+ ns-io-2.4.jar httpcore-4.4.11.jar objenesis-2.6.jar logback-classic-1.2
+ .3.jar jackson-databind-2.10.0.jar progressbar-0.7.2.jar antlr4-runtime
+ -4.5.3.jar json-smart-2.3.jar avatica-core-1.18.0.jar j2objc-annotation
+ s-1.3.jar failureaccess-1.0.1.jar commons-text-1.1.jar h2-1.4.197.jar u
+ zaygezen-core-0.2.jar apiguardian-api-1.1.0.jar janino-3.0.11.jar commo
+ ns-compiler-3.0.11.jar calcite-core-1.27.0.jar
+
