@@ -10,47 +10,36 @@ import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.tools.*;
+import org.apache.commons.text.StrTokenizer;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class Main {
 
+    //region DefaultArgs
+    Map<String, String> defaultArgs = new HashMap() {
+
+    };
+
+    //endregion
     public static void main(String[] args) throws Exception {
-
-
-        /*
-          args[0] - Сервер
-          args[1] - База данных
-          args[2] - UserName
-          args[3] - password
-          args[4] - название схемы
-          args[5] - ТекстЗапроса
-
-         */
-        String serverIP = "localhost";
-        serverIP = args[0];
-        String sourceDataBaseName = "tpch_0";
-        sourceDataBaseName = args[1];
-        String sourceDatabaseUser = "calcite";
-        sourceDatabaseUser = args[2];
-        String sourceDatabasePassword = "calcite";
-        sourceDatabasePassword = args[3];
-        String MYSQL_SCHEMA = "m";
-        MYSQL_SCHEMA = args[4];
-        String queryText = "SELECT * FROM m.nation";  //Запрос всегда должен содержать в поле From указание имени схемы.
-        queryText = args[5];
-
+        Map<String, String> params = SplitArgs(args);
         Connection connection = DriverManager.getConnection("jdbc:calcite:");
         CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
         SchemaPlus rootSchema = calciteConnection.getRootSchema();
 
+        String MYSQL_SCHEMA = params.get("Schema");
+        String queryText = params.get("Query");
         DataSource mysqlDataSource = JdbcSchema.dataSource(
-                "jdbc:mysql://"+ serverIP + "/" + sourceDataBaseName,
-                "com.mysql.cj.jdbc.Driver", // Change this if you want to use something like MySQL, Oracle, etc.
-                sourceDatabaseUser, // username
-                sourceDatabasePassword      // password
+                "jdbc:" + params.get("Driver") + "://" + params.get("Server") + "/" + params.get("Database"),
+                params.get("DriverClassName"), // Change this if you want to use something like MySQL, Oracle, etc.
+                params.get("Username"), // username
+                params.get("Password")      // password
         );
 
         rootSchema.add(MYSQL_SCHEMA, JdbcSchema.create(rootSchema, MYSQL_SCHEMA, mysqlDataSource, null, null));
@@ -65,7 +54,6 @@ public class Main {
         HepProgram program = HepProgram.builder().build();
         HepPlanner planner = new HepPlanner(program);
         planner.setRoot(node);
-
         RelNode optimizedNode = planner.findBestExp();
         final RelRunner runner = connection.unwrap(RelRunner.class);
         PreparedStatement ps = runner.prepareStatement(optimizedNode);
@@ -80,6 +68,60 @@ public class Main {
         }
 
     }
+
+    private static Map<String, String> SplitArgs(String[] args) {
+        if(args[0]!= null && args.length == 1) {
+            Map<String, String> output = new HashMap<>();
+            String[] arguments = args[0].split(";");
+            for (int i=0; i < arguments.length; i++
+                 ) {
+                String[] NameValue = arguments[i].split("=");
+                output.put(NameValue[0], NameValue[1]);
+            }
+            output = SetDefaults(output);
+            return output;
+        }
+        else{
+            return null;
+        }
+    }
+
+    private static Map<String, String> SetDefaults(Map<String, String> output) {
+        if(!output.containsKey("Server"))
+        {
+            output.put("Server", "localhost");
+        }
+        if(!output.containsKey("Database"))
+        {
+            output.put("Database", "tpch_0");
+        }
+        if(!output.containsKey("Username"))
+        {
+            output.put("Username", "root");
+        }
+        if(!output.containsKey("Password"))
+        {
+            output.put("Password", "");
+        }
+        if(!output.containsKey("Schema"))
+        {
+            output.put("Schema", "s");
+        }
+        if(!output.containsKey("Driver"))
+        {
+            output.put("Driver", "mysql");
+        }
+        if(!output.containsKey("Query"))
+        {
+            output.put("Query", "SELECT * FROM s.nation");
+        }
+        if(!output.containsKey("DriverClassName"))
+        {
+            output.put("DriverClassName", "com.mysql.cj.jdbc.Driver");
+        }
+        return output;
+    }
+
     private static RelNode parseAndValidateSQL(FrameworkConfig config, String queryText) throws SqlParseException, ValidationException, RelConversionException {
         // Build our connection
         RelNode outputRelNode;
