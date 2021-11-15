@@ -10,12 +10,10 @@ import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.tools.*;
-import org.apache.commons.text.StrTokenizer;
 
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 

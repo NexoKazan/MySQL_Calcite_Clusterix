@@ -18,27 +18,17 @@
         <dependency>
             <groupId>org.apache.calcite</groupId>
             <artifactId>calcite-core</artifactId>
-            <version>1.27.0</version>
+            <version>1.28.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.calcite.avatica</groupId>
             <artifactId>avatica-core</artifactId>
-            <version>1.18.0</version>
+            <version>1.19.0</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.26</version>
-        </dependency>
-        <dependency>
-            <groupId>org.verdictdb</groupId>
-            <artifactId>verdictdb-core</artifactId>
-            <version>0.5.8</version>
-        </dependency>
-        <dependency>
-            <groupId>jline</groupId>
-            <artifactId>jline</artifactId>
-            <version>3.0.0.M1</version>
         </dependency>
     </dependencies>
 </project>
