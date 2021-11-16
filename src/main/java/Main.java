@@ -15,6 +15,10 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.BufferedWriter;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 
 
 public class Main {
@@ -26,6 +30,8 @@ public class Main {
 
     //endregion
     public static void main(String[] args) throws Exception {
+
+        long start = System.currentTimeMillis();
         Map<String, String> params = SplitArgs(args);
         Connection connection = DriverManager.getConnection("jdbc:calcite:");
         CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
@@ -34,7 +40,7 @@ public class Main {
         String MYSQL_SCHEMA = params.get("Schema");
         String queryText = params.get("Query");
         DataSource mysqlDataSource = JdbcSchema.dataSource(
-                "jdbc:" + params.get("Driver") + "://" + params.get("Server") + "/" + params.get("Database"),
+                params.get("DataSourceUrl"),
                 params.get("DriverClassName"), // Change this if you want to use something like MySQL, Oracle, etc.
                 params.get("Username"), // username
                 params.get("Password")      // password
@@ -55,21 +61,38 @@ public class Main {
         RelNode optimizedNode = planner.findBestExp();
         final RelRunner runner = connection.unwrap(RelRunner.class);
         PreparedStatement ps = runner.prepareStatement(optimizedNode);
+        ps.setFetchSize(100);
+        ps.setFetchDirection(ResultSet.FETCH_FORWARD);
+
+        System.err.println("Prepare time: " +
+                (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
+
         ResultSet resultSet = ps.executeQuery();
+
+        System.err.println("Execute time: " +
+                (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
+
+        int columnCount = resultSet.getMetaData().getColumnCount();
+        BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new
+         FileOutputStream(java.io.FileDescriptor.out)), 65536);
         while (resultSet.next()){
-            for (int i=1; i <= resultSet.getMetaData().getColumnCount(); i++){
-                System.out.print(resultSet.getString(i));
-                System.out.print(";");
+            for (int i=1; i <= columnCount; i++){
+                out.write(resultSet.getString(i));
+                out.write(";");
             }
             //Thread.sleep(1000);
-            System.out.println();
+            out.write("\n");
         }
+        System.err.println("Write time: " +
+                (System.currentTimeMillis() - start));
 
     }
 
     private static Map<String, String> SplitArgs(String[] args) {
+        Map<String, String> output = new HashMap<>();
         if(args[0]!= null && args.length == 1) {
-            Map<String, String> output = new HashMap<>();
             String[] arguments = args[0].split(";");
             for (int i=0; i < arguments.length; i++
                  ) {
@@ -77,21 +100,14 @@ public class Main {
                 output.put(NameValue[0], NameValue[1]);
             }
             output = SetDefaults(output);
-            return output;
         }
-        else{
-            return null;
-        }
+        return output;
     }
 
     private static Map<String, String> SetDefaults(Map<String, String> output) {
-        if(!output.containsKey("Server"))
+        if(!output.containsKey("DataSourceUrl"))
         {
-            output.put("Server", "localhost");
-        }
-        if(!output.containsKey("Database"))
-        {
-            output.put("Database", "tpch_0");
+            output.put("DataSourceUrl", "jdbc:mysql://localhost/tpch_0?useCursorFetch=true&defaultFetchSize=10000");
         }
         if(!output.containsKey("Username"))
         {
@@ -104,10 +120,6 @@ public class Main {
         if(!output.containsKey("Schema"))
         {
             output.put("Schema", "s");
-        }
-        if(!output.containsKey("Driver"))
-        {
-            output.put("Driver", "mysql");
         }
         if(!output.containsKey("Query"))
         {
