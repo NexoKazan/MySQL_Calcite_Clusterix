@@ -28,7 +28,41 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.26</version>
+            <version>8.0.27</version>
         </dependency>
     </dependencies>
+    <build>
+  <plugins>
+    <plugin>
+      <!-- Build an executable JAR -->
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-jar-plugin</artifactId>
+      <version>3.1.0</version>
+      <configuration>
+        <archive>
+          <manifest>
+            <addClasspath>true</addClasspath>
+            <!--classpathPrefix>lib/</classpathPrefix-->
+            <mainClass>Main</mainClass>
+          </manifest>
+        </archive>
+      </configuration>
+    </plugin>
+      <plugin>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <executions>
+              <execution>
+                  <phase>install</phase>
+                  <goals>
+                      <goal>copy-dependencies</goal>
+                  </goals>
+                  <configuration>
+                      <outputDirectory>${project.build.directory}</outputDirectory>
+                  </configuration>
+              </execution>
+          </executions>
+      </plugin>
+  </plugins>
+</build>
+
 </project>
