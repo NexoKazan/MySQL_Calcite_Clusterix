@@ -77,14 +77,27 @@ public class Main {
         int columnCount = resultSet.getMetaData().getColumnCount();
         BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new
          FileOutputStream(java.io.FileDescriptor.out)), 65536);
+        StringBuilder sb = new StringBuilder(4096);
         while (resultSet.next()){
             for (int i=1; i <= columnCount; i++){
-                out.write(resultSet.getString(i));
-                out.write(";");
+                sb.append(resultSet.getString(i));
+                if (i < columnCount)
+                    sb.append(";");
             }
             //Thread.sleep(1000);
-            out.write("\n");
+            sb.append("\n");
+            if (sb.length()>2048)
+            {
+                out.write(sb.toString());
+                sb.setLength(0);
+            }
         }
+        if (sb.length()>0)
+        {
+            out.write(sb.toString());
+        }
+        out.flush();
+        out.close();
         System.err.println("Write time: " +
                 (System.currentTimeMillis() - start));
 
@@ -94,11 +107,18 @@ public class Main {
         Map<String, String> output = new HashMap<>();
         if(args[0]!= null && args.length == 1) {
             String[] arguments = args[0].split(";");
-            for (int i=0; i < arguments.length; i++
-                 ) {
-                String[] NameValue = arguments[i].split("=");
-                output.put(NameValue[0], NameValue[1]);
+            for (int i=0; i < arguments.length; i++) {
+                String arg = arguments[i];
+                int separatorIndex = arg.indexOf('=');
+                String name = arg.substring(0,separatorIndex);
+                String value = "";
+                if (arg.length()>separatorIndex)
+                {
+                    value = arg.substring(separatorIndex+1);
+                }
+                output.put(name, value);
             }
+
             output = SetDefaults(output);
         }
         return output;
