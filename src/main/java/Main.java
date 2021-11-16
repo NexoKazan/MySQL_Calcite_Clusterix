@@ -96,6 +96,8 @@ public class Main {
         {
             out.write(sb.toString());
         }
+        out.flush();
+        out.close();
         System.err.println("Write time: " +
                 (System.currentTimeMillis() - start));
 
