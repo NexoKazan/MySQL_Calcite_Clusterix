@@ -77,3 +77,4 @@ fabric.properties
 *.jar
 *.log
 
+/pom.xml.versionsBackup
