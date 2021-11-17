@@ -59,11 +59,23 @@ public class Main {
                 .context(Contexts.of(calciteConnection.config()))
                 .build();
 
+
         RelNode node = parseAndValidateSQL(config, queryText);
+
+        //System.out.println(RelOptUtil.toString(node));
+
         HepProgram program = HepProgram.builder().build();
         HepPlanner planner = new HepPlanner(program);
         planner.setRoot(node);
         RelNode optimizedNode = planner.findBestExp();
+
+//        VolcanoPlanner planner = (VolcanoPlanner) node.getCluster().getPlanner();
+//        RelTraitSet  desired = node.getTraitSet().replace(EnumerableConvention.INSTANCE).simplify();
+//        planner.setRoot(planner.changeTraits(node, desired));
+//        RelNode optimizedNode = planner.findBestExp();
+
+
+        //System.out.println(RelOptUtil.toString(optimizedNode));
         final RelRunner runner = connection.unwrap(RelRunner.class);
         PreparedStatement ps = runner.prepareStatement(optimizedNode);
         ps.setFetchSize(10000);
@@ -148,7 +160,10 @@ public class Main {
         }
         if(!output.containsKey("Query"))
         {
-            output.put("Query", "SELECT * FROM s.nation");
+            //output.put("Query", "SELECT * FROM s.nation");
+            output.put("Query", "SELECT   L_RETURNFLAG,   L_LINESTATUS,   L_QUANTITY,   L_EXTENDEDPRICE,   L_DISCOUNT,   L_TAX  " +
+                    "FROM s.LINEITEM " +
+                    "WHERE   L_SHIPDATE <= DATE '1998-12-01' - INTERVAL '90' DAY");
         }
         if(!output.containsKey("DriverClassName"))
         {
@@ -169,5 +184,4 @@ public class Main {
         outputRelNode = root.project();
         return outputRelNode ;
     }
-
 }
