@@ -9,5 +9,8 @@
         <module name="MySQL_Calcite_Clusterix" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="MySQL_Calcite_Clusterix (2)" target="8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

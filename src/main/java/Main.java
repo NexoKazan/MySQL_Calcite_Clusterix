@@ -1,10 +1,12 @@
 import org.apache.calcite.adapter.jdbc.JdbcSchema;
+import org.apache.calcite.adapter.csv.*;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.plan.Contexts;
 import org.apache.calcite.plan.hep.HepPlanner;
 import org.apache.calcite.plan.hep.HepProgram;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelRoot;
+import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParseException;
@@ -12,13 +14,10 @@ import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.tools.*;
 
 import javax.sql.DataSource;
+import java.io.*;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.io.BufferedWriter;
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 
 
 public class Main {
@@ -37,16 +36,22 @@ public class Main {
         CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
         SchemaPlus rootSchema = calciteConnection.getRootSchema();
 
-        String MYSQL_SCHEMA = params.get("Schema");
+        String schemaName = params.get("Schema");
         String queryText = params.get("Query");
-        DataSource mysqlDataSource = JdbcSchema.dataSource(
-                params.get("DataSourceUrl"),
-                params.get("DriverClassName"), // Change this if you want to use something like MySQL, Oracle, etc.
-                params.get("Username"), // username
-                params.get("Password")      // password
-        );
+        Schema dbSchema;
+        if (!params.get("DataSourceUrl").contains("csv")){
+            DataSource mysqlDataSource = JdbcSchema.dataSource(
+                    params.get("DataSourceUrl"),
+                    params.get("DriverClassName"), // Change this if you want to use something like MySQL, Oracle, etc.
+                    params.get("Username"), // username
+                    params.get("Password")      // password
+            );
+            dbSchema = JdbcSchema.create(rootSchema, schemaName, mysqlDataSource, null, null);
+        } else {
+            dbSchema = new CsvSchema(new File(params.get("DataSourceUrl").replace("csv:","")), CsvTable.Flavor.SCANNABLE);
+        }
+        rootSchema.add(schemaName, dbSchema);
 
-        rootSchema.add(MYSQL_SCHEMA, JdbcSchema.create(rootSchema, MYSQL_SCHEMA, mysqlDataSource, null, null));
         SqlParser.Config parserConfig = SqlParser.config().withCaseSensitive(false);
         FrameworkConfig config = Frameworks.newConfigBuilder()
                 .defaultSchema(rootSchema)
@@ -61,7 +66,7 @@ public class Main {
         RelNode optimizedNode = planner.findBestExp();
         final RelRunner runner = connection.unwrap(RelRunner.class);
         PreparedStatement ps = runner.prepareStatement(optimizedNode);
-        ps.setFetchSize(100);
+        ps.setFetchSize(10000);
         ps.setFetchDirection(ResultSet.FETCH_FORWARD);
 
         System.err.println("Prepare time: " +
