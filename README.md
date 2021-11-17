@@ -23,7 +23,7 @@ java -jar Calcirix-jar-with-dependencies.jar "DataSourceUrl=jdbc:mysql://127.0.0
 Для передачи результата в файл можно воспользовтаься перенаправление вывода:
 
 ```shell
-ava -jar Calcirix-jar-with-dependencies.jar "DataSourceUrl=jdbc:mysql://127.0.0.1/tpch?useCursorFetch=true&defaultFetchSize=100000;Username=root;Password=123456;Schema=s;DriverClassName=com.mysql.cj.jdbc.Driver;Query=SELECT * FROM s.nation" > resultFile.csv
+java -jar Calcirix-jar-with-dependencies.jar "DataSourceUrl=jdbc:mysql://127.0.0.1/tpch?useCursorFetch=true&defaultFetchSize=100000;Username=root;Password=123456;Schema=s;DriverClassName=com.mysql.cj.jdbc.Driver;Query=SELECT * FROM s.nation" > resultFile.csv
 ```
 
 ## Строка подключения
