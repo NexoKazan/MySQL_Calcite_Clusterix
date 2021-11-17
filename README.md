@@ -33,10 +33,16 @@ DataSourceUrl=jdbc:mysql://127.0.0.1/tpch?useCursorFetch=true&defaultFetchSize=1
 ```
 
 Здесь:
-- DataSourceUrl - указание ареса подключения
-- DriverClassName - навание драйвера подключения
-- Username - имя пользователя
-- Password - пароль пользователя
-- Schema - название главной схемы
-- Query - запрос
+- `DataSourceUrl` - указание ареса подключения
+  - Для MySQL: `jdbc:mysql://127.0.0.1/tpch?useCursorFetch=true&defaultFetchSize=100000`, где `useCursorFetch` и `defaultFetchSize` - параметры драйвера для получения данных из БД частями.
+  - Для PostgreSQL: `jdbc:postgresql://localhost:5432/tpch?defaultRowFetchSize=100000&adaptiveFetch=true&adaptiveFetchMinimum=1&adaptiveFetchMaximum=100000`, где `defaultRowFetchSize`, `adaptiveFetchMaximum` и `adaptiveFetchMinimum` - параметры драйвера для получения данных из БД частями.
+  - Для CSV: `csv:/media/mysql_experiments_tools/tpch`, `csv:` и путь до дирректории с файлами
+- `DriverClassName` - навание драйвера подключения
+  - `com.mysql.cj.jdbc.Driver` - MySQL 8
+  - `org.postgresql.Driver` - PostgreSQL
+  - `csv` - файлы CSV
+- `Username` - имя пользователя
+- `Password` - пароль пользователя
+- `Schema` - название главной схемы
+- `Query` - запрос
 

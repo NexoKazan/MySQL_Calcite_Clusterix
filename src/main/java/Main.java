@@ -39,7 +39,7 @@ public class Main {
         String schemaName = params.get("Schema");
         String queryText = params.get("Query");
         Schema dbSchema;
-        if (!params.get("DataSourceUrl").contains("csv")){
+        if (!params.get("DriverClassName").contains("csv")){
             DataSource mysqlDataSource = JdbcSchema.dataSource(
                     params.get("DataSourceUrl"),
                     params.get("DriverClassName"), // Change this if you want to use something like MySQL, Oracle, etc.
