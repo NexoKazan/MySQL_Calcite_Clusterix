@@ -124,9 +124,12 @@ public class Main {
         StringBuilder sb = new StringBuilder(4096);
         while (resultSet.next()){
             for (int i=1; i <= columnCount; i++){
+                sb.append("\"");
                 sb.append(resultSet.getString(i));
                 if (i < columnCount)
-                    sb.append(";");
+                    sb.append("\"|");
+                else
+                    sb.append("\"");
             }
             //Thread.sleep(1000);
             sb.append("\n");
