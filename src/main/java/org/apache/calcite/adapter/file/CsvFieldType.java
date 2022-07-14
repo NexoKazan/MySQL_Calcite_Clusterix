@@ -34,16 +34,16 @@ import java.util.Map;
  */
 public enum CsvFieldType {
   STRING(String.class, "string"),
-  BOOLEAN(Primitive.BOOLEAN),
-  BYTE(Primitive.BYTE),
-  CHAR(Primitive.CHAR),
+  //BOOLEAN(Primitive.BOOLEAN),
+  //BYTE(Primitive.BYTE),
+  //CHAR(Primitive.CHAR),
   SHORT(Primitive.SHORT),
   INT(Primitive.INT),
   LONG(Primitive.LONG),
-  FLOAT(Primitive.FLOAT),
-  DOUBLE(Primitive.DOUBLE),
-  DATE(java.sql.Date.class, "date"),
-  TIME(java.sql.Time.class, "time"),
+  //FLOAT(Primitive.FLOAT),
+  //DOUBLE(Primitive.DOUBLE),
+  //DATE(java.sql.Date.class, "date"),
+  //TIME(java.sql.Time.class, "time"),
   TIMESTAMP(java.sql.Timestamp.class, "timestamp");
 
   private final Class clazz;

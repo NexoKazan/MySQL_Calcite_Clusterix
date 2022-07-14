@@ -248,76 +248,102 @@ public class CsvEnumerator<E> implements Enumerator<E> {
       if (fieldType == null || string == null) {
         return string;
       }
-      switch (fieldType) {
-      case BOOLEAN:
-        if (string.length() == 0) {
-          return null;
+      boolean test = true;
+
+      /*if (!test){
+        switch (fieldType) {
+          case BOOLEAN:
+            if (string.length() == 0){
+              return null;
+            }
+            return Boolean.parseBoolean(string);
+          case BYTE:
+            if (string.length() == 0){
+              return null;
+            }
+            return Byte.parseByte(string);
+          case SHORT:
+            if (string.length() == 0){
+              return null;
+            }
+            return Short.parseShort(string);
+          case INT:
+            if (string.length() == 0){
+              return null;
+            }
+            return Integer.parseInt(string);
+          case LONG:
+            if (string.length() == 0){
+              return null;
+            }
+            return Long.parseLong(string);
+          case FLOAT:
+            if (string.length() == 0){
+              return null;
+            }
+            return Float.parseFloat(string);
+          case DOUBLE:
+            if (string.length() == 0){
+              return null;
+            }
+            return Double.parseDouble(string);
+          case DATE:
+            if (string.length() == 0){
+              return null;
+            }
+            try {
+              Date date = TIME_FORMAT_DATE.parse(string);
+              return (int) (date.getTime() / DateTimeUtils.MILLIS_PER_DAY);
+            } catch (ParseException e) {
+              return null;
+            }
+          case TIME:
+            if (string.length() == 0){
+              return null;
+            }
+            try {
+              Date date = TIME_FORMAT_TIME.parse(string);
+              return (int) date.getTime();
+            } catch (ParseException e) {
+              return null;
+            }
+          case TIMESTAMP:
+            if (string.length() == 0){
+              return null;
+            }
+            try {
+              Date date = TIME_FORMAT_TIMESTAMP.parse(string);
+              return date.getTime();
+            } catch (ParseException e) {
+              return null;
+            }
+          case STRING:
+          default:
+            return string;
         }
-        return Boolean.parseBoolean(string);
-      case BYTE:
-        if (string.length() == 0) {
-          return null;
+      } else {
+       */ switch (fieldType) {
+          case SHORT:
+            if (string.length() == 0){
+              return null;
+            }
+            return Short.parseShort(string);
+          case INT:
+            if (string.length() == 0){
+              return null;
+            }
+            return Integer.parseInt(string);
+          case LONG:
+            if (string.length() == 0){
+              return null;
+            }
+            return Long.parseLong(string);
+          case STRING:
+          default:
+            return string;
         }
-        return Byte.parseByte(string);
-      case SHORT:
-        if (string.length() == 0) {
-          return null;
-        }
-        return Short.parseShort(string);
-      case INT:
-        if (string.length() == 0) {
-          return null;
-        }
-        return Integer.parseInt(string);
-      case LONG:
-        if (string.length() == 0) {
-          return null;
-        }
-        return Long.parseLong(string);
-      case FLOAT:
-        if (string.length() == 0) {
-          return null;
-        }
-        return Float.parseFloat(string);
-      case DOUBLE:
-        if (string.length() == 0) {
-          return null;
-        }
-        return Double.parseDouble(string);
-      case DATE:
-        if (string.length() == 0) {
-          return null;
-        }
-        try {
-          Date date = TIME_FORMAT_DATE.parse(string);
-          return (int) (date.getTime() / DateTimeUtils.MILLIS_PER_DAY);
-        } catch (ParseException e) {
-          return null;
-        }
-      case TIME:
-        if (string.length() == 0) {
-          return null;
-        }
-        try {
-          Date date = TIME_FORMAT_TIME.parse(string);
-          return (int) date.getTime();
-        } catch (ParseException e) {
-          return null;
-        }
-      case TIMESTAMP:
-        if (string.length() == 0) {
-          return null;
-        }
-        try {
-          Date date = TIME_FORMAT_TIMESTAMP.parse(string);
-          return date.getTime();
-        } catch (ParseException e) {
-          return null;
-        }
-      case STRING:
-      default:
-        return string;
-      }
+
+      //}
     }
   }
 
