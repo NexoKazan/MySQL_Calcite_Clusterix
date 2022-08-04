@@ -137,7 +137,7 @@ public class CsvEnumerator<E> implements Enumerator<E> {
           String typeString = string.substring(colon + 1);
           fieldType = CsvFieldType.of(typeString);
           if (fieldType == null) {
-            System.out.println("WARNING: Found unknown type: "
+            System.err.println("WARNING: Found unknown type: "
                 + typeString + " in file: " + source.path()
                 + " for column: " + name
                 + ". Will assume the type of column is string");
