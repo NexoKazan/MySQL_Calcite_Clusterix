@@ -36,7 +36,7 @@ public class Main {
     //endregion
     public static void main(String[] args) throws Exception {
 
-        //System.in.read();
+        System.in.read();
         long start = System.currentTimeMillis();
         Map<String, String> params = SplitArgs(args);
         Connection connection = DriverManager.getConnection("jdbc:calcite:");
@@ -147,7 +147,7 @@ public class Main {
         out.close();
         System.err.println("Write time: " +
                 (System.currentTimeMillis() - start));
-        //System.in.read();
+        System.in.read();
 
     }
 
