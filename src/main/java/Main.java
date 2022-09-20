@@ -104,17 +104,17 @@ public class Main {
                 else
                     sb.append("\"");
             }
-            //Thread.sleep(1000);
+//            Thread.sleep(1000);
             sb.append("\n");
             if (sb.length()>2048)
             {
-                out.write(sb.toString());
-                sb.setLength(0);
+//                out.write(sb.toString());
+//                sb.setLength(0);
             }
         }
         if (sb.length()>0)
         {
-            out.write(sb.toString());
+//            out.write(sb.toString());
         }
         out.flush();
         out.close();

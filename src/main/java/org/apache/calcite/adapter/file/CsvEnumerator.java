@@ -17,6 +17,7 @@
 package org.apache.calcite.adapter.file;
 
 import org.apache.calcite.adapter.java.JavaTypeFactory;
+import org.apache.calcite.adapter.jbinary.TableBinaryStorage;
 import org.apache.calcite.avatica.util.DateTimeUtils;
 import org.apache.calcite.linq4j.Enumerator;
 import org.apache.calcite.rel.type.RelDataType;
@@ -52,6 +53,8 @@ public class CsvEnumerator<E> implements Enumerator<E> {
   private final @Nullable List<@Nullable String> filterValues;
   private final AtomicBoolean cancelFlag;
   private final RowConverter<E> rowConverter;
+  private TableBinaryStorage tbs = null;
+
   private @Nullable E current;
 
   private static final FastDateFormat TIME_FORMAT_DATE;
@@ -75,6 +78,14 @@ public class CsvEnumerator<E> implements Enumerator<E> {
 
   public CsvEnumerator(Source source, AtomicBoolean cancelFlag, boolean stream,
       @Nullable String @Nullable [] filterValues, RowConverter<E> rowConverter) {
+    String fileName =  source.file().getName().replace(".csv", "");
+    String database =  source.file().getPath().replace(source.file().getName(), "");
+    try {
+      this.tbs = new TableBinaryStorage(fileName, database, "r");
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
     this.cancelFlag = cancelFlag;
     this.rowConverter = rowConverter;
     this.filterValues = filterValues == null ? null
@@ -178,42 +189,63 @@ public class CsvEnumerator<E> implements Enumerator<E> {
   }
 
   @Override public boolean moveNext() {
+//    try {
+//    outer:
+//      for (;;) {
+//        if (cancelFlag.get()) {
+//          return false;
+//        }
+//        //СЮДА
+//        final String[] strings = reader.readNext();
+//        if (strings == null) {
+//          if (reader instanceof CsvStreamReader) {
+//            try {
+//              Thread.sleep(CsvStreamReader.DEFAULT_MONITOR_DELAY);
+//            } catch (InterruptedException e) {
+//              throw new RuntimeException(e);
+//            }
+//            continue;
+//          }
+//          current = null;
+//          reader.close();
+//          return false;
+//        }
+//        if (filterValues != null) {
+//          for (int i = 0; i < strings.length; i++) {
+//            String filterValue = filterValues.get(i);
+//            if (filterValue != null) {
+//              if (!filterValue.equals(strings[i])) {
+//                continue outer;
+//              }
+//            }
+//          }
+//        }
+//        current = rowConverter.convertRow(strings);
+//        return true;
+//      }
+//    } catch (IOException e) {
+//      throw new RuntimeException(e);
+//    }
+
     try {
-    outer:
-      for (;;) {
-        if (cancelFlag.get()) {
-          return false;
-        }
-        final String[] strings = reader.readNext();
-        if (strings == null) {
-          if (reader instanceof CsvStreamReader) {
-            try {
-              Thread.sleep(CsvStreamReader.DEFAULT_MONITOR_DELAY);
-            } catch (InterruptedException e) {
-              throw new RuntimeException(e);
-            }
-            continue;
-          }
-          current = null;
-          reader.close();
-          return false;
-        }
-        if (filterValues != null) {
-          for (int i = 0; i < strings.length; i++) {
-            String filterValue = filterValues.get(i);
-            if (filterValue != null) {
-              if (!filterValue.equals(strings[i])) {
-                continue outer;
-              }
-            }
-          }
-        }
-        current = rowConverter.convertRow(strings);
+      Object[] result = tbs.ReadNextRow();
+      if (result != null)
+      {
+        current = (E) result;
         return true;
       }
+      else
+      {
+        current = null;
+        return false;
+      }
+
     } catch (IOException e) {
       throw new RuntimeException(e);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
     }
+
   }
 
   @Override public void reset() {
@@ -245,6 +277,8 @@ public class CsvEnumerator<E> implements Enumerator<E> {
 
     @SuppressWarnings("JavaUtilDate")
     protected @Nullable Object convert(@Nullable CsvFieldType fieldType, @Nullable String string) {
+
+      // И СЮДА
       if (fieldType == null || string == null) {
         return string;
       }
