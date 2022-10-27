@@ -62,7 +62,7 @@ public class TableRow {
                 bytes = strStruct.writeObject();
             }
             case DATE, TIME, DATETIME ->
-                    bytes = BytesConverter.LongToByteArray((long) data);
+                    bytes = BytesConverter.LongToByteArray(((Date) data).getTime());
 
             default -> {
             }
@@ -164,9 +164,8 @@ public class TableRow {
                 if(buffer.remaining() < Long.BYTES) return null;
                 //buffer.get(buf, 0, buf.length);
                 //var ticks = BytesConverter.ByteArrayToLong(buf);
-                var ticks = buffer.getLong();
-                Date tmpD = new Date(ticks);
-                result = (int) (tmpD.getTime() / DateTimeUtils.MILLIS_PER_DAY);
+                var ticks = buffer.getLong();                ;
+                result = (int) (ticks / DateTimeUtils.MILLIS_PER_DAY);
                 _rowSize += Long.BYTES;
             }
             default -> {
