@@ -30,7 +30,7 @@ public class Main {
     //endregion
     public static void main(String[] args) throws Exception {
 
-        long start = System.currentTimeMillis();
+        //long start = System.currentTimeMillis();
         Map<String, String> params = SplitArgs(args);
         Connection connection = DriverManager.getConnection("jdbc:calcite:");
         CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
@@ -78,23 +78,26 @@ public class Main {
         //System.out.println(RelOptUtil.toString(optimizedNode));
         final RelRunner runner = connection.unwrap(RelRunner.class);
         PreparedStatement ps = runner.prepareStatement(optimizedNode);
-        ps.setFetchSize(10000);
+        ps.setFetchSize(0);
         ps.setFetchDirection(ResultSet.FETCH_FORWARD);
 
-        System.err.println("Prepare time: " +
-                (System.currentTimeMillis() - start));
-        start = System.currentTimeMillis();
+//        System.err.println("Prepare time: " +
+//                (System.currentTimeMillis() - start));
+//        start = System.currentTimeMillis();
 
         ResultSet resultSet = ps.executeQuery();
 
-        System.err.println("Execute time: " +
-                (System.currentTimeMillis() - start));
-        start = System.currentTimeMillis();
+//        System.err.println("Execute time: " +
+//                (System.currentTimeMillis() - start));
+//        start = System.currentTimeMillis();
 
         int columnCount = resultSet.getMetaData().getColumnCount();
         BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new
          FileOutputStream(java.io.FileDescriptor.out)), 65536);
+//        BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new
+//                FileOutputStream(new File("test/testbinary.txt"))), 65536);
         StringBuilder sb = new StringBuilder(4096);
+
         while (resultSet.next()){
             for (int i=1; i <= columnCount; i++){
                 sb.append("\"");
@@ -108,18 +111,18 @@ public class Main {
             sb.append("\n");
             if (sb.length()>2048)
             {
-//                out.write(sb.toString());
-//                sb.setLength(0);
+                out.write(sb.toString());
+                sb.setLength(0);
             }
         }
         if (sb.length()>0)
         {
-//            out.write(sb.toString());
+            out.write(sb.toString());
         }
         out.flush();
         out.close();
-        System.err.println("Write time: " +
-                (System.currentTimeMillis() - start));
+//        System.err.println("Write time: " +
+//                (System.currentTimeMillis() - start));
 
     }
 

@@ -1,5 +1,8 @@
 package org.apache.calcite.adapter.jbinary;
 
+import org.apache.calcite.util.Pair;
+import org.postgresql.core.Tuple;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -11,6 +14,8 @@ public class StringColumn implements Serializable {
     private final int Length;
     public final byte[] StringData;
 
+    private final static byte[] _BUF = new byte[1024*1024];
+    private final static byte[] _IntBuf = new byte[Integer.BYTES];
     public StringColumn(byte[] stringData) {
         Length = stringData.length;
         StringData = stringData;
@@ -29,17 +34,18 @@ public class StringColumn implements Serializable {
         return bytes;
     }
 
-    public static byte[] readObject(MappedByteBuffer buffer)throws IOException, ClassNotFoundException{
-        var buf = new byte[Integer.BYTES];
+    public static Pair<byte[], Integer> readObject(MappedByteBuffer buffer)throws IOException, ClassNotFoundException{
+
         if ( buffer.remaining() < Integer.BYTES ) return null;
-        buffer.get( buf, 0, Integer.BYTES );
+        buffer.get( _IntBuf, 0, Integer.BYTES );
         //if (fis.read(buf, 0,Integer.BYTES) != Integer.BYTES) return null;
-        int len = (int) BytesConverter.ByteArrayToInt(buf);    //Возможно ошибка
-        buf = new  byte[len];
+        int len = (int) BytesConverter.ByteArrayToInt(_IntBuf);    //Возможно ошибка
+        //buf = new  byte[len];
         //if (fis.read(buf, 0,len) != len) return null;
         if ( buffer.remaining() < len) return null;
-        buffer.get( buf, 0, len);
-        return buf;
+        buffer.get( _BUF, 0, len);
+        //_BUF[len] = 0;
+        return new Pair<>(_BUF, len);
     }
 
     private byte[] bigIntToByteArray( final int i ) {

@@ -24,6 +24,9 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
     private long _channelSize;
     private long METAINT = Integer.MAX_VALUE;
 
+    private TableRow _tmpRow;
+
+    public static long _tmpDesTime = 0;
     public TableBinaryStorage(String table, String db, String mode) throws IOException {
         _table = table;
         _db    = db;
@@ -50,6 +53,7 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
             _channelSize  = _inputChannel.size();
 //            System.err.println("GB-" + _channelSize/1024/1024/1024 + " MB-" +_channelSize/1024/1024 + " KB-" + _channelSize/1024);
             _inputBuffer = _inputChannel.map(FileChannel.MapMode.READ_ONLY, 0, CheckBufferSize());
+            _tmpRow = new TableRow(_meta.Columns, _meta.Types   );
 
         }
         readedSize = 0;
@@ -76,12 +80,14 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
     public Object[] ReadNextRow() throws IOException, ClassNotFoundException {
         if(Objects.equals(_mode, "rw")) return new Object[ 0 ];
         long tmpSize = TableRow._size;
-        var row = TableRow.Deserialize(_inputBuffer, _meta.Types);
+        long start = System.currentTimeMillis();
+        var row = TableRow.Deserialize (_inputBuffer, _meta.Types);
         if((_channelSize != readedSize) && (TableRow._size == -1)) {
             _inputBuffer = _inputChannel.map(FileChannel.MapMode.READ_ONLY, readedSize, CheckBufferSize());
             row          = TableRow.Deserialize(_inputBuffer, _meta.Types);
 
         }
+        _tmpDesTime += System.currentTimeMillis() - start;
         // System.out.println("AllSize - readed = remaining " + _channelSize + "-" + readedSize + "=" + (_channelSize-readedSize) + "(" + TableRow._size + ")");
 
         readedSize += TableRow._size;

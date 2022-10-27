@@ -18,6 +18,7 @@ package org.apache.calcite.adapter.file;
 
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.adapter.jbinary.TableBinaryStorage;
+import org.apache.calcite.adapter.jbinary.TableRow;
 import org.apache.calcite.avatica.util.DateTimeUtils;
 import org.apache.calcite.linq4j.Enumerator;
 import org.apache.calcite.rel.type.RelDataType;
@@ -60,6 +61,10 @@ public class CsvEnumerator<E> implements Enumerator<E> {
   private static final FastDateFormat TIME_FORMAT_DATE;
   private static final FastDateFormat TIME_FORMAT_TIME;
   private static final FastDateFormat TIME_FORMAT_TIMESTAMP;
+
+  //private static long timer;
+
+  //private static long _counter = 0;
 
   static {
     final TimeZone gmt = TimeZone.getTimeZone("GMT");
@@ -189,10 +194,13 @@ public class CsvEnumerator<E> implements Enumerator<E> {
   }
 
   @Override public boolean moveNext() {
+    long start = System.currentTimeMillis();
+     //_counter++;
 //    try {
 //    outer:
 //      for (;;) {
 //        if (cancelFlag.get()) {
+////          System.err.println("Timer: " + timer);
 //          return false;
 //        }
 //        //СЮДА
@@ -208,6 +216,8 @@ public class CsvEnumerator<E> implements Enumerator<E> {
 //          }
 //          current = null;
 //          reader.close();
+////          System.err.println("Timer: " + timer);
+////          System.err.println("Counter: " + _counter);
 //          return false;
 //        }
 //        if (filterValues != null) {
@@ -221,6 +231,7 @@ public class CsvEnumerator<E> implements Enumerator<E> {
 //          }
 //        }
 //        current = rowConverter.convertRow(strings);
+////        timer += System.currentTimeMillis()-start;
 //        return true;
 //      }
 //    } catch (IOException e) {
@@ -232,15 +243,28 @@ public class CsvEnumerator<E> implements Enumerator<E> {
       if (result != null)
       {
         current = (E) result;
+        //timer += System.currentTimeMillis()-start;
         return true;
       }
       else
       {
+
         current = null;
+//        System.err.println("For time: " +
+//                (TableRow._tmpFor));
+//        System.err.println("If time: " +
+//                (TableRow._tmpIf));
+//        System.err.println("Des time: " +
+//                (TableBinaryStorage._tmpDesTime));
+//        System.err.println("Rd time: " +
+//                (TableRow._tmpRead));
+//        System.err.println("Timer: " + timer);
+//        System.err.println("Counter: " + _counter);
         return false;
       }
 
     } catch (IOException e) {
+      System.out.println();
       throw new RuntimeException(e);
     } catch (ClassNotFoundException e) {
       throw new RuntimeException(e);

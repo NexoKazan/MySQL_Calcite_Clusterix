@@ -78,3 +78,7 @@ fabric.properties
 *.log
 
 /pom.xml.versionsBackup
+/bin.txt
+/csv.txt
+/Params.txt
+/test/
