@@ -164,8 +164,8 @@ public class TableRow {
                 if(buffer.remaining() < Long.BYTES) return null;
                 //buffer.get(buf, 0, buf.length);
                 //var ticks = BytesConverter.ByteArrayToLong(buf);
-                var ticks = buffer.getLong();
-                result = (int) (ticks / DateTimeUtils.MILLIS_PER_DAY)+1;
+                var ticks = buffer.getLong();                ;
+                result = (int) (ticks / DateTimeUtils.MILLIS_PER_DAY);
                 _rowSize += Long.BYTES;
             }
             default -> {
