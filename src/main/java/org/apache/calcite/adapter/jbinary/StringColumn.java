@@ -6,7 +6,7 @@ import org.postgresql.core.Tuple;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.nio.MappedByteBuffer;
+import java.nio.ByteBuffer;
 
 public class StringColumn implements Serializable {
    // возможно стоит переделать под RandomAccesFile
@@ -34,7 +34,7 @@ public class StringColumn implements Serializable {
         return bytes;
     }
 
-    public static Pair<byte[], Integer> readObject(MappedByteBuffer buffer)throws IOException, ClassNotFoundException{
+    public static Pair<byte[], Integer> readObject(ByteBuffer buffer)throws IOException, ClassNotFoundException{
 
         if ( buffer.remaining() < Integer.BYTES ) return null;
         buffer.get( _IntBuf, 0, Integer.BYTES );

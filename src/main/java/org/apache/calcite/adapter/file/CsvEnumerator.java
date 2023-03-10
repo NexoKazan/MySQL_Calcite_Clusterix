@@ -86,7 +86,7 @@ public class CsvEnumerator<E> implements Enumerator<E> {
     String fileName =  source.file().getName().replace(".csv", "");
     String database =  source.file().getPath().replace(source.file().getName(), "");
     try {
-      this.tbs = new TableBinaryStorage(fileName, database, "r");
+      this.tbs = new TableBinaryStorage(fileName, database, "r", true);
 
     } catch (IOException e) {
       e.printStackTrace();
