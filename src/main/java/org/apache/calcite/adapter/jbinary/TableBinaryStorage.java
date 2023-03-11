@@ -1,8 +1,13 @@
 package org.apache.calcite.adapter.jbinary;
 
 import com.google.gson.Gson;
+import net.jpountz.lz4.LZ4Decompressor;
+import net.jpountz.lz4.LZ4Factory;
+import net.jpountz.lz4.LZ4FastDecompressor;
+import net.jpountz.lz4.LZ4SafeDecompressor;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
@@ -17,19 +22,30 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
     private final FileMeta _meta;
     //private final RandomAccessFile _file;
     private FileInputStream _fis = null;
-    MappedByteBuffer _inputBuffer = null;
+    MappedByteBuffer _inputMappedBuffer = null;
+    ByteBuffer _inputBuffer = null;
     FileChannel _inputChannel = null;
     private FileOutputStream _fos = null;
-    public long readedSize;
+    public long fileReadedSize;
     private long _channelSize;
     private long METAINT = Integer.MAX_VALUE;
 
+    private boolean _useCompression;
     private TableRow _tmpRow;
 
+    private LZ4Factory lz4factory;
+
+    private final static int COMPRESSED_BUF_LEN = 16*1024*1024;
+    private final static int DECOMPRESSED_BUF_LEN = COMPRESSED_BUF_LEN * 4;
+
+    LZ4SafeDecompressor decompressor;
     public static long _tmpDesTime = 0;
-    public TableBinaryStorage(String table, String db, String mode) throws IOException {
+    public TableBinaryStorage(String table, String db, String mode, boolean useCompression) throws IOException {
         _table = table;
         _db    = db;
+        _useCompression = useCompression;
+        fileReadedSize = 0;
+
         if(Objects.equals(mode, "rw") || Objects.equals(mode, "r")) {
             _mode = mode;
         }
@@ -37,6 +53,9 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
             _mode = "rw";
         }
         var path = Path.of(db, table + "_meta.json");
+
+        lz4factory = LZ4Factory.fastestInstance();
+        decompressor = lz4factory.safeDecompressor();
 
         BufferedReader br = new BufferedReader(new FileReader(String.valueOf(path)));
         Gson gson = new Gson();
@@ -52,11 +71,30 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
             _inputChannel = _fis.getChannel();
             _channelSize  = _inputChannel.size();
 //            System.err.println("GB-" + _channelSize/1024/1024/1024 + " MB-" +_channelSize/1024/1024 + " KB-" + _channelSize/1024);
-            _inputBuffer = _inputChannel.map(FileChannel.MapMode.READ_ONLY, 0, CheckBufferSize());
+            _inputMappedBuffer = _inputChannel.map(FileChannel.MapMode.READ_ONLY, fileReadedSize, CheckBufferSize());
+            _inputBuffer = _useCompression ? DecompressChunk() : _inputMappedBuffer;
             _tmpRow = new TableRow(_meta.Columns, _meta.Types   );
 
         }
-        readedSize = 0;
+    }
+
+    private ByteBuffer DecompressChunk() throws IOException {
+        int byteCount = _inputMappedBuffer.remaining();
+
+        if (byteCount < COMPRESSED_BUF_LEN){
+            _inputMappedBuffer = _inputChannel.map(FileChannel.MapMode.READ_ONLY, fileReadedSize, CheckBufferSize());
+        }
+        if (byteCount > COMPRESSED_BUF_LEN){
+            byteCount = COMPRESSED_BUF_LEN;
+        }
+
+        int frameLen = _inputMappedBuffer.getInt();
+        byte[] compressedChunk = new byte[frameLen];
+        _inputMappedBuffer.get(compressedChunk);
+        fileReadedSize += frameLen;
+        byte[] decompressed = new byte[DECOMPRESSED_BUF_LEN];
+        int decompressedLen = decompressor.decompress(compressedChunk, 0, frameLen, decompressed, 0);
+        return ByteBuffer.wrap(decompressed, 0, decompressedLen);
     }
 
     @Override
@@ -82,16 +120,16 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
         long tmpSize = TableRow._size;
         long start = System.currentTimeMillis();
         var row = TableRow.Deserialize (_inputBuffer, _meta.Types);
-        if((_channelSize != readedSize) && (TableRow._size == -1)) {
-            _inputBuffer = _inputChannel.map(FileChannel.MapMode.READ_ONLY, readedSize, CheckBufferSize());
-            row          = TableRow.Deserialize(_inputBuffer, _meta.Types);
-
+        if((_channelSize != fileReadedSize) && (TableRow._size == -1)) {
+            _inputBuffer =  _useCompression ? DecompressChunk() : _inputChannel.map(FileChannel.MapMode.READ_ONLY, fileReadedSize, CheckBufferSize());
+            row = TableRow.Deserialize(_inputBuffer, _meta.Types);
         }
         _tmpDesTime += System.currentTimeMillis() - start;
         // System.out.println("AllSize - readed = remaining " + _channelSize + "-" + readedSize + "=" + (_channelSize-readedSize) + "(" + TableRow._size + ")");
 
-        readedSize += TableRow._size;
-        if(_channelSize - readedSize > 0) {
+        if (!_useCompression)
+            fileReadedSize += TableRow._size;
+        if(_inputBuffer.remaining() > 0) {
             assert row != null;
             return row.Columns();
         }
@@ -115,8 +153,8 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
             return _channelSize;
         }
         else {
-            if(_channelSize - readedSize < METAINT) {
-                return _channelSize - readedSize;
+            if(_channelSize - fileReadedSize < METAINT) {
+                return _channelSize - fileReadedSize;
             }
             else return METAINT;
         }

@@ -6,7 +6,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
-import java.nio.MappedByteBuffer;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -71,7 +71,7 @@ public class TableRow {
         stream.write(bytes);
     }
 
-    public static TableRow Deserialize(MappedByteBuffer inputBuffer, ColumnType[] types) throws IOException, ClassNotFoundException {
+    public static TableRow Deserialize(ByteBuffer inputBuffer, ColumnType[] types) throws IOException, ClassNotFoundException {
         _rowSize = 0;
         int typesLength = types.length;
         Object[] columns = new Object[ typesLength ];
@@ -94,7 +94,7 @@ public class TableRow {
         return new TableRow(columns, types);
     }
 
-    private static Object ReadData(ColumnType type, MappedByteBuffer buffer) throws IOException, ClassNotFoundException, BufferUnderflowException, IndexOutOfBoundsException {
+    private static Object ReadData(ColumnType type, ByteBuffer buffer) throws IOException, ClassNotFoundException, BufferUnderflowException, IndexOutOfBoundsException {
         long tmpTime = System.currentTimeMillis();
         byte[] buf = null;
         Object result = null;
