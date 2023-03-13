@@ -27,6 +27,7 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
     FileChannel _inputChannel = null;
     private FileOutputStream _fos = null;
     public long fileReadedSize;
+    public long readedSize;
     private long _channelSize;
     private long METAINT = Integer.MAX_VALUE;
 
@@ -45,6 +46,8 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
         _db    = db;
         _useCompression = useCompression;
         fileReadedSize = 0;
+        readedSize = 0;
+        _inputBuffer = ByteBuffer.allocate(0);
 
         if(Objects.equals(mode, "rw") || Objects.equals(mode, "r")) {
             _mode = mode;
@@ -79,22 +82,23 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
     }
 
     private ByteBuffer DecompressChunk() throws IOException {
-        int byteCount = _inputMappedBuffer.remaining();
-
-        if (byteCount < COMPRESSED_BUF_LEN){
+        if (_inputMappedBuffer.remaining() < COMPRESSED_BUF_LEN &&
+                fileReadedSize + _inputMappedBuffer.remaining() < _channelSize){
             _inputMappedBuffer = _inputChannel.map(FileChannel.MapMode.READ_ONLY, fileReadedSize, CheckBufferSize());
-        }
-        if (byteCount > COMPRESSED_BUF_LEN){
-            byteCount = COMPRESSED_BUF_LEN;
         }
 
         int frameLen = _inputMappedBuffer.getInt();
         byte[] compressedChunk = new byte[frameLen];
         _inputMappedBuffer.get(compressedChunk);
-        fileReadedSize += frameLen;
+        fileReadedSize += frameLen + 4;
         byte[] decompressed = new byte[DECOMPRESSED_BUF_LEN];
-        int decompressedLen = decompressor.decompress(compressedChunk, 0, frameLen, decompressed, 0);
-        return ByteBuffer.wrap(decompressed, 0, decompressedLen);
+
+        int bufRemaining = _inputBuffer.limit() - (int)readedSize;
+        _inputBuffer.position((int)readedSize);
+        _inputBuffer.get(decompressed,0, bufRemaining);
+        int decompressedLen = decompressor.decompress(compressedChunk, 0, frameLen, decompressed, bufRemaining);
+        readedSize = 0; // сброс счетчика чтения
+        return ByteBuffer.wrap(decompressed, 0, decompressedLen + bufRemaining);
     }
 
     @Override
@@ -129,6 +133,7 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
 
         if (!_useCompression)
             fileReadedSize += TableRow._size;
+        readedSize += TableRow._size;
         if(_inputBuffer.remaining() > 0) {
             assert row != null;
             return row.Columns();
