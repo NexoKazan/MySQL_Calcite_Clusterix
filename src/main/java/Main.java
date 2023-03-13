@@ -1,3 +1,4 @@
+import org.apache.calcite.adapter.jbinary.TableBinaryStorage;
 import org.apache.calcite.adapter.jdbc.JdbcSchema;
 import org.apache.calcite.adapter.csv.*;
 import org.apache.calcite.jdbc.CalciteConnection;
@@ -36,6 +37,7 @@ public class Main {
         CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
         SchemaPlus rootSchema = calciteConnection.getRootSchema();
 
+        TableBinaryStorage.UseCompression = params.get("UseCompression").equals("true");
         String schemaName = params.get("Schema");
         String queryText = params.get("Query");
         Schema dbSchema;
@@ -44,7 +46,7 @@ public class Main {
                     params.get("DataSourceUrl"),
                     params.get("DriverClassName"), // Change this if you want to use something like MySQL, Oracle, etc.
                     params.get("Username"), // username
-                    params.get("Password")      // password
+                    params.get("Password")  // password
             );
             dbSchema = JdbcSchema.create(rootSchema, schemaName, mysqlDataSource, null, null);
         } else {
@@ -107,7 +109,6 @@ public class Main {
                 else
                     sb.append("\"");
             }
-//            Thread.sleep(1000);
             sb.append("\n");
             if (sb.length()>2048)
             {
@@ -174,6 +175,10 @@ public class Main {
         if(!output.containsKey("DriverClassName"))
         {
             output.put("DriverClassName", "com.mysql.cj.jdbc.Driver");
+        }
+        if(!output.containsKey("UseCompression"))
+        {
+            output.put("UseCompression", "false");
         }
         return output;
     }
