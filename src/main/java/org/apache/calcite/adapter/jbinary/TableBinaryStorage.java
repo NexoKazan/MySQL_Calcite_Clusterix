@@ -31,7 +31,7 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
     private long _channelSize;
     private long METAINT = Integer.MAX_VALUE;
 
-    private boolean _useCompression;
+    public static boolean UseCompression;
     private TableRow _tmpRow;
 
     private LZ4Factory lz4factory;
@@ -41,10 +41,9 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
 
     LZ4SafeDecompressor decompressor;
     public static long _tmpDesTime = 0;
-    public TableBinaryStorage(String table, String db, String mode, boolean useCompression) throws IOException {
+    public TableBinaryStorage(String table, String db, String mode) throws IOException {
         _table = table;
         _db    = db;
-        _useCompression = useCompression;
         fileReadedSize = 0;
         readedSize = 0;
         _inputBuffer = ByteBuffer.allocate(0);
@@ -75,7 +74,7 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
             _channelSize  = _inputChannel.size();
 //            System.err.println("GB-" + _channelSize/1024/1024/1024 + " MB-" +_channelSize/1024/1024 + " KB-" + _channelSize/1024);
             _inputMappedBuffer = _inputChannel.map(FileChannel.MapMode.READ_ONLY, fileReadedSize, CheckBufferSize());
-            _inputBuffer = _useCompression ? DecompressChunk() : _inputMappedBuffer;
+            _inputBuffer = UseCompression ? DecompressChunk() : _inputMappedBuffer;
             _tmpRow = new TableRow(_meta.Columns, _meta.Types   );
 
         }
@@ -125,16 +124,19 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
         long start = System.currentTimeMillis();
         var row = TableRow.Deserialize (_inputBuffer, _meta.Types);
         if((_channelSize != fileReadedSize) && (TableRow._size == -1)) {
-            _inputBuffer =  _useCompression ? DecompressChunk() : _inputChannel.map(FileChannel.MapMode.READ_ONLY, fileReadedSize, CheckBufferSize());
+            _inputBuffer =  UseCompression ?
+                    DecompressChunk() :
+                    (_inputMappedBuffer =
+                            _inputChannel.map(FileChannel.MapMode.READ_ONLY, fileReadedSize, CheckBufferSize()));
             row = TableRow.Deserialize(_inputBuffer, _meta.Types);
         }
         _tmpDesTime += System.currentTimeMillis() - start;
         // System.out.println("AllSize - readed = remaining " + _channelSize + "-" + readedSize + "=" + (_channelSize-readedSize) + "(" + TableRow._size + ")");
 
-        if (!_useCompression)
+        if (!UseCompression)
             fileReadedSize += TableRow._size;
         readedSize += TableRow._size;
-        if(_inputBuffer.remaining() > 0) {
+        if(TableRow._size != -1) {
             assert row != null;
             return row.Columns();
         }
