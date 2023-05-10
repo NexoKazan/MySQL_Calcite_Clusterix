@@ -128,6 +128,7 @@ public class TableBinaryStorage implements IDatabaseReader, AutoCloseable {
                     DecompressChunk() :
                     (_inputMappedBuffer =
                             _inputChannel.map(FileChannel.MapMode.READ_ONLY, fileReadedSize, CheckBufferSize()));
+            System.gc();
             row = TableRow.Deserialize(_inputBuffer, _meta.Types);
         }
         _tmpDesTime += System.currentTimeMillis() - start;
